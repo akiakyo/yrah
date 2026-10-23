@@ -5,6 +5,7 @@ import { useLibrary, uid } from '../lib/library.jsx'
 import { textToCards } from '../lib/parse.js'
 import { renderPage, makePdf, ocr, makeDocx, makeXlsx, download } from '../lib/scan.js'
 import { sfx } from '../lib/sfx.js'
+import { friendlyError } from '../lib/errors.js'
 
 const labels = { pdf: 'make pdf', docx: 'make word doc', xlsx: 'make excel', cards: 'make flashcards' }
 
@@ -72,7 +73,7 @@ export default function ScanTool({ tool }) {
       notify('file saved ✦')
     } catch (err) {
       sfx('error')
-      notify(err.message || 'something went wrong')
+      notify(friendlyError(err))
     } finally {
       setProgress(null)
     }

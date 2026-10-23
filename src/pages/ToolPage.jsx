@@ -8,6 +8,7 @@ import { convertFile, pptxToText } from '../lib/api.js'
 import { useLibrary } from '../lib/library.jsx'
 import FolderSelect from '../components/FolderSelect.jsx'
 import { sfx } from '../lib/sfx.js'
+import { friendlyError } from '../lib/errors.js'
 import ScanTool from '../components/ScanTool.jsx'
 import { docxToPdf } from '../lib/wordpdf.js'
 import { download } from '../lib/scan.js'
@@ -86,7 +87,7 @@ export default function ToolPage() {
       }
     } catch (err) {
       sfx('error')
-      notify(err.message || 'something went wrong')
+      notify(friendlyError(err))
     } finally {
       setStatus('')
     }
