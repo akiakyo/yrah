@@ -3,15 +3,67 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>yrah — study tools</title>
-    <meta name="description" content="turn pdfs, word docs, slides and notes into flashcards." />
+
+    <!-- seo: scripts/seo.mjs rewrites these per route at build time, src/lib/useSeo.js on navigation -->
+    <title>yrah — Free Flashcard Maker, PDF &amp; Scan to Flashcards</title>
+    <meta name="description" content="Turn PDFs, Word docs, slides, notes and photos of your notebook into flashcards in seconds. Free, no sign up, works offline on your phone." />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="canonical" href="https://yrah.vercel.app/" />
+    <meta name="author" content="akiakyo" />
+
+    <!-- social previews (messenger, facebook, x, discord) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="yrah" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="yrah — Free Flashcard Maker, PDF &amp; Scan to Flashcards" />
+    <meta property="og:description" content="Turn PDFs, Word docs, slides, notes and photos of your notebook into flashcards in seconds. Free, no sign up, works offline on your phone." />
+    <meta property="og:url" content="https://yrah.vercel.app/" />
+    <meta property="og:image" content="https://yrah.vercel.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="yrah — study cuter, learn faster" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="yrah — Free Flashcard Maker, PDF &amp; Scan to Flashcards" />
+    <meta name="twitter:description" content="Turn PDFs, Word docs, slides, notes and photos of your notebook into flashcards in seconds. Free, no sign up, works offline on your phone." />
+    <meta name="twitter:image" content="https://yrah.vercel.app/og.png" />
+
+    <!-- app -->
     <meta name="theme-color" content="#fffcf2" />
+    <meta name="application-name" content="yrah" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="yrah" />
     <link rel="icon" type="image/png" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+
+    <!-- structured data so google understands this is a free web app -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "yrah",
+        "url": "https://yrah.vercel.app/",
+        "description": "Free study tools: flashcard maker, PDF, Word, PowerPoint and scan to flashcards, scan to PDF, Word and Excel, and file converters.",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "image": "https://yrah.vercel.app/og.png",
+        "author": { "@type": "Person", "name": "akiakyo" },
+        "featureList": [
+          "Flashcard maker",
+          "PDF to flashcards",
+          "Scan notes to flashcards",
+          "Scan to PDF, Word and Excel",
+          "PDF to Word and Excel",
+          "Word to PDF",
+          "Works offline"
+        ]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- chewy is only a fallback until public/fonts/Nailong.ttf is added -->
@@ -19,6 +71,7 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>yrah needs javascript to run. it turns pdfs, notes and photos into flashcards, free.</noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

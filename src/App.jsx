@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'rea
 import { DeckProvider } from './lib/deck.jsx'
 import { ConfirmProvider } from './lib/confirm.jsx'
 import { useReveal } from './lib/useReveal.js'
+import { useSeo } from './lib/useSeo.js'
 import { installTapSounds } from './lib/sfx.js'
 import Background from './components/Background.jsx'
 import Nav from './components/Nav.jsx'
@@ -21,6 +22,7 @@ function Layout() {
   // instant, otherwise the smooth-scroll css animates every page change
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }) }, [pathname])
   useReveal([pathname])
+  useSeo(pathname)
 
   return (
     <>

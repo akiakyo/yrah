@@ -47,3 +47,10 @@ vite proxies `/api` to `127.0.0.1:8000` in dev.
 
 put the nailong font in `public/fonts/` as `Nailong.ttf` (or `.otf` / `.woff2`). until then it falls back to chewy.
 icons are [solar icons](https://solar-icons.dev/), bold style, via `@solar-icons/react/bold`.
+
+## seo
+
+- page titles/descriptions live in `src/lib/seo.js` (one entry per route, `noindex` for app screens and unfinished tools)
+- `npm run build` runs `scripts/seo.mjs` after vite: prerenders `dist/<route>/index.html` with the right meta + open graph tags, and writes `sitemap.xml` and `robots.txt`
+- `src/lib/useSeo.js` keeps the tags in sync while navigating inside the app
+- share image: `public/og.png` (1200×630). set `SITE_URL` if the domain changes

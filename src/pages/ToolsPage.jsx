@@ -18,7 +18,7 @@ export default function ToolsPage() {
     <section className="section page-top">
       <div className="section-head">
         <p className="eyebrow">the toolbox</p>
-        <h2 className="display">pick a tool</h2>
+        <h1 className="display">pick a tool</h1>
         <p className="muted">most of them run right on your phone.</p>
       </div>
       <div className="filters">

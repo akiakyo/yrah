@@ -6,13 +6,13 @@ import { sfx } from '../lib/sfx.js'
 // splits text into letters that pop in one by one
 function Split({ text, delay = 0, className = '' }) {
   return (
-    <h1 className={`display hero-title ${className}`} aria-label={text}>
+    <span className={`hero-line ${className}`} aria-hidden="true">
       {[...text].map((ch, i) => (
-        <span key={i} className="char" aria-hidden="true" style={{ animationDelay: `${delay + i * 0.045}s` }}>
+        <span key={i} className="char" style={{ animationDelay: `${delay + i * 0.045}s` }}>
           {ch === ' ' ? ' ' : ch}
         </span>
       ))}
-    </h1>
+    </span>
   )
 }
 
@@ -41,8 +41,11 @@ export default function Hero() {
     <section className="hero">
       <div className="hero-copy">
         <p className="pill reveal"><span className="pulse" /> free study tools, no sign up</p>
-        <Split text="study cuter." />
-        <Split text="learn faster." delay={0.5} className="accent" />
+        {/* one h1 for seo, the letter spans are hidden from screen readers */}
+        <h1 className="display hero-title" aria-label="study cuter. learn faster.">
+          <Split text="study cuter." />
+          <Split text="learn faster." delay={0.5} className="accent" />
+        </h1>
         <p className="lead reveal">drop in a pdf, word doc, slides or your messy notes. get clean flashcards in seconds.</p>
         <div className="hero-cta reveal">
           <Link to="/tools/pdf-fc" className="btn btn-primary">

@@ -201,8 +201,9 @@ svg.solar { flex-shrink: 0; }
 .pulse::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--yellow-deep); animation: ping 1.8s var(--ease) infinite; }
 @keyframes ping { to { transform: scale(3); opacity: 0; } }
 .hero-title { font-size: clamp(3rem, 14vw, 6.2rem); }
-.hero-title.accent { margin-bottom: 1rem; }
-.hero-title.accent .char { color: var(--yellow); -webkit-text-stroke: 0.12em var(--ink); paint-order: stroke fill; text-shadow: 0.05em 0.07em 0 var(--ink); }
+.hero-title { margin-bottom: 1rem; }
+.hero-line { display: block; }
+.hero-line.accent .char { color: var(--yellow); -webkit-text-stroke: 0.12em var(--ink); paint-order: stroke fill; text-shadow: 0.05em 0.07em 0 var(--ink); }
 .char { display: inline-block; animation: pop 0.8s var(--spring) both; }
 @keyframes pop { from { opacity: 0; transform: translateY(0.6em) scale(0.4) rotate(-12deg); } }
 @keyframes wiggle { 30% { transform: rotate(-10deg) scale(1.15); } 60% { transform: rotate(8deg); } }
@@ -284,7 +285,7 @@ svg.solar { flex-shrink: 0; }
   display: inline-block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em;
   color: var(--brown); background: var(--yellow-soft); padding: 0.3rem 0.8rem; border-radius: 999px; margin-bottom: 0.8rem;
 }
-.section-head h2 { font-size: clamp(2.2rem, 9vw, 3.6rem); margin-bottom: 0.5rem; }
+.section-head h1, .section-head h2 { font-size: clamp(2.2rem, 9vw, 3.6rem); margin-bottom: 0.5rem; }
 .mega-title { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 700; margin-bottom: 0.6rem; }
 
 /* ---------- tools ---------- */
