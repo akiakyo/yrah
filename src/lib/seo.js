@@ -70,9 +70,10 @@ export const pages = {
   '/tools/ppt-sum': { title: 'PowerPoint Summarizer (coming soon) | yrah', description: 'Summarize a slide deck in one page. Coming soon to yrah.', noindex: true },
   '/tools/yt-sum': { title: 'YouTube Summarizer (coming soon) | yrah', description: 'Skip the 2-hour lecture. Coming soon to yrah.', noindex: true },
   '/study': { title: 'Study Your Flashcards | yrah', description: 'Swipe through your flashcards: right if you know it, left to review again.', noindex: true },
-  '/deck': { title: 'My Flashcard Deck | yrah', description: 'Edit the terms and definitions in your flashcard deck.', noindex: true },
+  '/deck': { title: 'Edit Deck | yrah', description: 'Edit the terms and definitions in your flashcard deck.', noindex: true },
+  '/library': { title: 'My Library — Courses, Subjects & Decks | yrah', description: 'Organize your flashcard decks into courses and subjects.', noindex: true },
 }
 
-export const seoFor = (path) => pages[path] || pages['/']
+export const seoFor = (path) => pages[path] || pages['/' + path.split('/')[1]] || pages['/']
 
 export const absolute = (path) => SITE.url.replace(/\/$/, '') + path

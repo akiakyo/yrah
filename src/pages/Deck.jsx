@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { AddCircleIcon, NotesIcon, DocumentTextIcon, TrashBinMinimalisticIcon, CloseIcon, PlayIcon } from '@solar-icons/react/bold'
-import { useDeck, uid } from '../lib/deck.jsx'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { AddCircleIcon, TrashBinMinimalisticIcon, CloseIcon, PlayIcon, AltArrowLeftIcon, MagicWandIcon } from '@solar-icons/react/bold'
+import { useLibrary, uid, playableCards } from '../lib/library.jsx'
 import { useConfirm } from '../lib/confirm.jsx'
+import { firstSentence } from '../lib/shorten.js'
+import FolderSelect from '../components/FolderSelect.jsx'
 
 // textarea that grows with its content
 function Grow(props) {
@@ -22,47 +24,72 @@ function Grow(props) {
 }
 
 export default function Deck() {
-  const { deck, setDeck, notify } = useDeck()
+  const { deckId } = useParams()
+  const lib = useLibrary()
   const navigate = useNavigate()
   const ask = useConfirm()
-  const count = deck.cards.filter((c) => c.term.trim() || c.def.trim()).length
+  const deck = lib.getDeck(deckId)
 
-  const update = (id, key, value) => setDeck((d) => ({ ...d, cards: d.cards.map((c) => (c.id === id ? { ...c, [key]: value } : c)) }))
-  const remove = (id) => setDeck((d) => ({ ...d, cards: d.cards.filter((c) => c.id !== id) }))
+  useEffect(() => { if (deck) lib.openDeck(deck.id) }, [deckId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!deck) return <Navigate to="/library" replace />
+
+  const count = playableCards(deck).length
+  const path = lib.path(deck.folderId)
+  const back = deck.folderId ? `/library/${deck.folderId}` : '/library'
+  const longAnswers = deck.cards.filter((c) => firstSentence(c.def) !== c.def.replace(/\s+/g, ' ').trim()).length
+
+  const setCards = (fn) => lib.updateDeck(deck.id, (d) => ({ cards: fn(d.cards) }))
+  const update = (id, key, value) => setCards((cards) => cards.map((c) => (c.id === id ? { ...c, [key]: value } : c)))
+  const remove = (id) => setCards((cards) => cards.filter((c) => c.id !== id))
   const add = () => {
-    setDeck((d) => ({ ...d, cards: [...d.cards, { id: uid(), term: '', def: '' }] }))
+    setCards((cards) => [...cards, { id: uid(), term: '', def: '' }])
     // focus the new card once it renders
     setTimeout(() => {
       const rows = document.querySelectorAll('.card-row textarea')
       rows[rows.length - 2]?.focus()
     }, 50)
   }
-  const clear = async () => {
+
+  const shortenAll = async () => {
     const ok = await ask({
-      title: 'clear this deck?',
-      text: `all ${count} cards will be gone. this can't be undone.`,
-      ok: 'yes, clear it',
-      cancel: 'keep them',
-      Icon: TrashBinMinimalisticIcon,
-      danger: true,
+      title: 'shorten answers?',
+      text: `${longAnswers} long ${longAnswers === 1 ? 'answer' : 'answers'} will be cut to 1 sentence. you can still edit them after.`,
+      ok: 'shorten', cancel: 'not now', Icon: MagicWandIcon,
     })
     if (!ok) return
-    setDeck({ title: '', cards: [{ id: uid(), term: '', def: '' }] })
-    notify('deck cleared')
+    setCards((cards) => cards.map((c) => ({ ...c, def: firstSentence(c.def) })))
+    lib.notify('answers shortened ✦')
+  }
+
+  const removeDeck = async () => {
+    const ok = await ask({
+      title: 'delete this deck?',
+      text: `all ${deck.cards.length} cards will be gone. this can't be undone.`,
+      ok: 'yes, delete', cancel: 'keep it', Icon: TrashBinMinimalisticIcon, danger: true,
+    })
+    if (!ok) return
+    lib.deleteDeck(deck.id)
+    lib.notify('deck deleted')
+    navigate(back, { replace: true })
   }
 
   return (
     <section className="deck-page page-top">
+      <Link to={back} className="back-link"><AltArrowLeftIcon size={20} /> {path.length ? path[path.length - 1].name : 'library'}</Link>
+
       <div className="deck-head">
-        <p className="eyebrow">my deck · {count} cards</p>
+        <p className="eyebrow">{path.length ? path.map((f) => f.name).join(' / ') : 'unsorted'} · {count} cards</p>
         <input className="deck-title" placeholder="untitled deck" maxLength={60} value={deck.title}
-          onChange={(e) => setDeck((d) => ({ ...d, title: e.target.value }))} />
+          onChange={(e) => lib.updateDeck(deck.id, { title: e.target.value })} />
       </div>
 
+      <FolderSelect label="saved in" value={deck.folderId} onChange={(folderId) => { lib.updateDeck(deck.id, { folderId }); lib.notify('deck moved ✦') }} />
+
       <div className="deck-tools">
-        <Link to="/tools/pdf-fc" className="deck-btn"><DocumentTextIcon size={18} /> from pdf</Link>
-        <Link to="/tools/notes" className="deck-btn"><NotesIcon size={18} /> notes</Link>
-        <button className="deck-btn danger" data-sfx="none" onClick={clear}><TrashBinMinimalisticIcon size={18} /> clear</button>
+        <button className="deck-btn" data-sfx="none" disabled={!longAnswers} onClick={shortenAll}><MagicWandIcon size={18} /> shorten</button>
+        <button className="deck-btn" data-sfx="pop" onClick={add}><AddCircleIcon size={18} /> card</button>
+        <button className="deck-btn danger" data-sfx="none" onClick={removeDeck}><TrashBinMinimalisticIcon size={18} /> delete</button>
       </div>
 
       <div className="card-list">
@@ -78,7 +105,7 @@ export default function Deck() {
             </label>
             <label>
               <span>definition</span>
-              <Grow placeholder="what it means" value={c.def} onChange={(e) => update(c.id, 'def', e.target.value)} />
+              <Grow placeholder="keep it short: a keyword or 1 sentence" value={c.def} onChange={(e) => update(c.id, 'def', e.target.value)} />
             </label>
           </div>
         ))}
@@ -90,7 +117,7 @@ export default function Deck() {
       {/* sticky study bar sits above the tab bar on phones */}
       <div className="study-bar">
         <span className="muted">{count} cards ready</span>
-        <button className="btn btn-primary" disabled={!count} onClick={() => navigate('/study')}><PlayIcon size={18} /> study</button>
+        <button className="btn btn-primary" disabled={!count} onClick={() => navigate(`/study/${deck.id}`)}><PlayIcon size={18} /> study</button>
       </div>
     </section>
   )

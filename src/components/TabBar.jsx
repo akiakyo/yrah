@@ -1,12 +1,12 @@
 import { NavLink } from 'react-router-dom'
-import { Home2Icon, WidgetIcon, AddCircleIcon, PenNewSquareIcon, LayersMinimalisticIcon } from '@solar-icons/react/bold'
+import { Home2Icon, WidgetIcon, AddCircleIcon, FoldersIcon, LayersMinimalisticIcon } from '@solar-icons/react/bold'
 
 // phone-only bottom navigation, the middle button goes straight to pdf upload
 const tabs = [
   { to: '/', label: 'home', Icon: Home2Icon, end: true },
   { to: '/tools', label: 'tools', Icon: WidgetIcon, end: true },
   { to: '/tools/pdf-fc', label: 'upload', Icon: AddCircleIcon, main: true },
-  { to: '/deck', label: 'deck', Icon: PenNewSquareIcon },
+  { to: '/library', label: 'library', Icon: FoldersIcon },
   { to: '/study', label: 'study', Icon: LayersMinimalisticIcon },
 ]
 

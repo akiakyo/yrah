@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
-import { DeckProvider } from './lib/deck.jsx'
+import { LibraryProvider } from './lib/library.jsx'
 import { ConfirmProvider } from './lib/confirm.jsx'
 import { useReveal } from './lib/useReveal.js'
 import { useSeo } from './lib/useSeo.js'
@@ -13,11 +13,12 @@ import ToolsPage from './pages/ToolsPage.jsx'
 import ToolPage from './pages/ToolPage.jsx'
 import Study from './pages/Study.jsx'
 import Deck from './pages/Deck.jsx'
+import Library from './pages/Library.jsx'
 
 function Layout() {
   const { pathname } = useLocation()
   // study is a focus screen: no nav, no tab bar
-  const focus = pathname === '/study'
+  const focus = pathname === '/study' || pathname.startsWith('/study/')
 
   // instant, otherwise the smooth-scroll css animates every page change
   useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }) }, [pathname])
@@ -41,20 +42,24 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <DeckProvider>
+      <LibraryProvider>
         <ConfirmProvider>
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="tools" element={<ToolsPage />} />
             <Route path="tools/:id" element={<ToolPage />} />
+            <Route path="library" element={<Library />} />
+            <Route path="library/:folderId" element={<Library />} />
+            <Route path="deck" element={<Navigate to="/library" replace />} />
+            <Route path="deck/:deckId" element={<Deck />} />
             <Route path="study" element={<Study />} />
-            <Route path="deck" element={<Deck />} />
+            <Route path="study/:deckId" element={<Study />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
         </ConfirmProvider>
-      </DeckProvider>
+      </LibraryProvider>
     </BrowserRouter>
   )
 }

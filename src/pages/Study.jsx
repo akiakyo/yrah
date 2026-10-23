@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   CloseCircleIcon, CloseIcon, CheckIcon, PenNewSquareIcon, MenuDotsIcon, UndoLeftRoundIcon, ShuffleIcon,
-  TransferHorizontalIcon, RestartIcon, CloudUploadIcon, CupStarIcon, Home2Icon, LayersMinimalisticIcon,
+  TransferHorizontalIcon, RestartIcon, CloudUploadIcon, CupStarIcon, FoldersIcon, LayersMinimalisticIcon,
+  VolumeLoudIcon, VolumeCrossIcon, TextFieldIcon,
 } from '@solar-icons/react/bold'
-import { VolumeLoudIcon, VolumeCrossIcon } from '@solar-icons/react/bold'
-import { useDeck } from '../lib/deck.jsx'
+import { useLibrary, playableCards } from '../lib/library.jsx'
+import { shorten, isShortened } from '../lib/shorten.js'
 import { sfx } from '../lib/sfx.js'
 import { useMuted } from '../lib/useMuted.js'
+
+const ANSWER_MODES = [['full', 'full'], ['sentence', '1 sentence'], ['keywords', 'keywords']]
 
 const SWIPE = 90
 
@@ -19,11 +22,30 @@ function shuffled(arr) {
 
 const buzz = (ms = 8) => navigator.vibrate?.(ms)
 
+// lives inside the card, so it must not start a drag or flip the card
+function SeeFull({ full, onToggle }) {
+  return (
+    <button className="see-full" data-sfx="tap"
+      onPointerDown={(e) => e.stopPropagation()} onPointerUp={(e) => e.stopPropagation()}
+      onClick={(e) => { e.stopPropagation(); onToggle() }}>
+      <TextFieldIcon size={16} /> {full ? 'show short' : 'see full answer'}
+    </button>
+  )
+}
+
 export default function Study() {
-  const { deck } = useDeck()
+  const { deckId } = useParams()
+  const lib = useLibrary()
+  // /study opens the last deck you used
+  const deck = lib.getDeck(deckId || lib.lastDeckId) || (!deckId ? lib.decks[0] : undefined)
   const navigate = useNavigate()
   const { state, pathname } = useLocation()
-  const playable = useMemo(() => deck.cards.filter((c) => c.term.trim() || c.def.trim()), [deck.cards])
+  const playable = useMemo(() => playableCards(deck), [deck])
+  const answerMode = lib.prefs.answer
+  const [showFull, setShowFull] = useState(false)
+  const libraryLink = deck?.folderId ? `/library/${deck.folderId}` : '/library'
+
+  useEffect(() => { if (deck) lib.openDeck(deck.id) }, [deck?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [round, setRound] = useState(() => playable.map((_, i) => i))
   const [results, setResults] = useState([])
@@ -80,6 +102,7 @@ export default function Study() {
       setResults((res) => { const n = [...res]; n[pos] = r; return n })
       setPos((p) => p + 1)
       setFlipped(false)
+      setShowFull(false)
       setLeaving(0)
       setDx(0)
       dxRef.current = 0
@@ -94,6 +117,7 @@ export default function Study() {
     setPos((p) => p - 1)
     setResults((res) => res.slice(0, pos - 1))
     setFlipped(false)
+    setShowFull(false)
   }
 
   const flip = () => { buzz(5); sfx('flip'); setFlipped((f) => !f) }
@@ -130,7 +154,7 @@ export default function Study() {
   useEffect(() => {
     const onKey = (e) => {
       if (sheet) return
-      if (e.key === 'Escape') return navigate('/')
+      if (e.key === 'Escape') return navigate(libraryLink)
       // let focused buttons, links and inputs handle their own keys
       if (e.target.closest?.('button, a, input, textarea, select')) return
       if (done || e.repeat) return
@@ -147,28 +171,32 @@ export default function Study() {
     return (
       <div className="study study-empty">
         <LayersMinimalisticIcon size={56} />
-        <h2 className="display">no cards yet</h2>
-        <p className="muted">upload a pdf or make a deck first.</p>
-        <Link to="/tools/pdf-fc" className="btn btn-primary">upload a pdf</Link>
-        <Link to="/deck" className="btn btn-ghost">make a deck</Link>
+        <h2 className="display">{deck ? 'no cards yet' : 'deck not found'}</h2>
+        <p className="muted">{deck ? 'add a few cards to this deck first.' : 'it may have been deleted.'}</p>
+        {deck && <Link to={`/deck/${deck.id}`} className="btn btn-primary">add cards</Link>}
+        <Link to="/tools/pdf-fc" className={`btn ${deck ? 'btn-ghost' : 'btn-primary'}`}>upload a pdf</Link>
+        <Link to="/library" className="btn btn-ghost">open library</Link>
       </div>
     )
   }
 
   const x = leaving ? leaving * window.innerWidth : dx
   const tilt = x / 18
-  const front = card ? (swapped ? card.def : card.term) : ''
-  const back = card ? (swapped ? card.term : card.def) : ''
+  // long answers are shortened for display only, "see full" shows the saved text
+  const mode = showFull ? 'full' : answerMode
+  const front = card ? (swapped ? shorten(card.def, mode) : card.term) : ''
+  const back = card ? (swapped ? card.term : shorten(card.def, mode)) : ''
+  const canExpand = card && isShortened(card.def, answerMode)
 
   return (
     <div className="study">
       <header className="study-top">
-        <button className="icon-btn" aria-label="close" onClick={() => navigate('/')}><CloseCircleIcon size={28} /></button>
+        <button className="icon-btn" aria-label="close" onClick={() => navigate(libraryLink)}><CloseCircleIcon size={28} /></button>
         <div className="study-title">
           <strong>{deck.title || 'untitled deck'}</strong>
           <span>{Math.min(pos + 1, round.length)} / {round.length}</span>
         </div>
-        <Link to="/deck" className="icon-btn" aria-label="edit cards"><PenNewSquareIcon size={26} /></Link>
+        <Link to={`/deck/${deck.id}`} className="icon-btn" aria-label="edit cards"><PenNewSquareIcon size={26} /></Link>
         <button className="icon-btn" aria-label="options" onClick={() => setSheet(true)}><MenuDotsIcon size={26} /></button>
       </header>
 
@@ -193,8 +221,14 @@ export default function Study() {
               <span className="stamp stamp-know" style={{ opacity: Math.max(0, Math.min(x / SWIPE, 1)) }}>know it</span>
               <span className="stamp stamp-again" style={{ opacity: Math.max(0, Math.min(-x / SWIPE, 1)) }}>again</span>
               <div className="s-inner">
-                <div className="s-face front"><span className="tag">{swapped ? 'definition' : 'term'}</span><p>{front}</p></div>
-                <div className="s-face back"><span className="tag">{swapped ? 'term' : 'definition'}</span><p>{back}</p></div>
+                <div className={`s-face front ${swapped ? 'is-def' : ''}`}>
+                  <span className="tag">{swapped ? 'definition' : 'term'}</span><p>{front}</p>
+                  {swapped && !flipped && canExpand && <SeeFull full={showFull} onToggle={() => setShowFull((v) => !v)} />}
+                </div>
+                <div className={`s-face back ${swapped ? '' : 'is-def'}`}>
+                  <span className="tag">{swapped ? 'term' : 'definition'}</span><p>{back}</p>
+                  {!swapped && flipped && canExpand && <SeeFull full={showFull} onToggle={() => setShowFull((v) => !v)} />}
+                </div>
               </div>
             </div>
           </div>
@@ -222,8 +256,8 @@ export default function Study() {
               </button>
             )}
             <button className={`btn btn-block ${again > 0 ? 'btn-ghost' : 'btn-primary'}`} onClick={() => restart()}><RestartIcon size={20} /> restart deck</button>
-            <Link to="/deck" className="btn btn-ghost btn-block"><PenNewSquareIcon size={20} /> edit cards</Link>
-            <Link to="/" className="btn btn-ghost btn-block"><Home2Icon size={20} /> home</Link>
+            <Link to={`/deck/${deck.id}`} className="btn btn-ghost btn-block"><PenNewSquareIcon size={20} /> edit cards</Link>
+            <Link to={libraryLink} className="btn btn-ghost btn-block"><FoldersIcon size={20} /> back to library</Link>
           </div>
         </div>
       )}
@@ -232,6 +266,14 @@ export default function Study() {
         <div className="sheet-wrap" onClick={() => setSheet(false)}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <span className="sheet-grip" />
+            <p className="mega-title">answer length</p>
+            <div className="seg seg-3" role="radiogroup" aria-label="answer length">
+              {ANSWER_MODES.map(([value, label]) => (
+                <button key={value} role="radio" aria-checked={answerMode === value} data-sfx="toggle"
+                  className={answerMode === value ? 'on' : ''} onClick={() => { lib.setPref('answer', value); setShowFull(false) }}>{label}</button>
+              ))}
+              <span className="seg-ink" style={{ transform: `translateX(${ANSWER_MODES.findIndex(([v]) => v === answerMode) * 100}%)` }} />
+            </div>
             <p className="mega-title">options</p>
             <button className="sheet-item" data-sfx="none" onClick={toggleMute}>
               {muted ? <VolumeCrossIcon size={24} /> : <VolumeLoudIcon size={24} />} <span>sound effects</span> <span className={`switch ${muted ? '' : 'on'}`} />
@@ -243,7 +285,7 @@ export default function Study() {
               <TransferHorizontalIcon size={24} /> <span>definition first</span> <span className={`switch ${swapped ? 'on' : ''}`} />
             </button>
             <button className="sheet-item" onClick={() => restart()}><RestartIcon size={24} /> <span>restart</span></button>
-            <Link className="sheet-item" to="/deck"><PenNewSquareIcon size={24} /> <span>edit cards</span></Link>
+            <Link className="sheet-item" to={`/deck/${deck.id}`}><PenNewSquareIcon size={24} /> <span>edit cards</span></Link>
             <Link className="sheet-item" to="/tools/pdf-fc"><CloudUploadIcon size={24} /> <span>upload another pdf</span></Link>
           </div>
         </div>

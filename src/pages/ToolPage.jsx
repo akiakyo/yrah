@@ -5,7 +5,8 @@ import { tools, toolPath } from '../lib/tools.jsx'
 import { textToCards } from '../lib/parse.js'
 import { pdfToText, docxToText } from '../lib/extract.js'
 import { convertFile, pptxToText } from '../lib/api.js'
-import { useDeck } from '../lib/deck.jsx'
+import { useLibrary } from '../lib/library.jsx'
+import FolderSelect from '../components/FolderSelect.jsx'
 import { sfx } from '../lib/sfx.js'
 import ScanTool from '../components/ScanTool.jsx'
 import { docxToPdf } from '../lib/wordpdf.js'
@@ -42,7 +43,9 @@ export default function ToolPage() {
   const { id } = useParams()
   const tool = tools.find((t) => t.id === id)
   const navigate = useNavigate()
-  const { loadCards, notify } = useDeck()
+  const lib = useLibrary()
+  const { notify } = lib
+  const folderId = lib.prefs.folderId && lib.getFolder(lib.prefs.folderId) ? lib.prefs.folderId : null
   const [text, setText] = useState('')
   const [status, setStatus] = useState('')
 
@@ -51,14 +54,15 @@ export default function ToolPage() {
 
   const others = tools.filter((t) => t.group === tool.group && t.id !== tool.id)
 
-  // cards found -> straight to the study screen
+  // cards found -> saved as a new deck in the chosen folder, then straight to studying
   const fromText = (raw, title) => {
     const cards = textToCards(raw)
     if (!cards.length) { sfx('error'); return notify("couldn't find any cards in that") }
     sfx('success')
-    loadCards(cards, title)
-    navigate('/study', { state: { made: cards.length } })
+    const id = lib.createDeck({ title: title || tool.name.replace(/ to flashcards$/, '') + ' deck', cards, folderId })
+    navigate(`/study/${id}`, { state: { made: cards.length } })
   }
+  const makesCards = tool.kind === 'paste' || tool.kind === 'cards' || (tool.kind === 'scan' && tool.output === 'cards')
 
   const handleFile = async (file) => {
     try {
@@ -99,6 +103,7 @@ export default function ToolPage() {
       </div>
 
       <div className="tool-work">
+        {makesCards && <FolderSelect value={folderId} onChange={(id) => lib.setPref('folderId', id)} />}
         {tool.kind === 'paste' && (
           <>
             <textarea className="notes" placeholder={tool.placeholder} value={text} onChange={(e) => setText(e.target.value)} />

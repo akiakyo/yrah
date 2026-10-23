@@ -9,8 +9,9 @@ yellow, minimalist, phone-first study app (pwa): flashcard maker, notes / quizle
 | `/` | home, quick actions, continue studying |
 | `/tools` | every tool |
 | `/tools/:id` | one tool (upload / paste) |
-| `/study` | full-screen flashcards: tap to flip, swipe right = know it, left = still learning |
-| `/deck` | edit the deck |
+| `/library`, `/library/:folderId` | courses → subjects → decks, search |
+| `/deck/:deckId` | edit a deck, move it, shorten answers |
+| `/study/:deckId` | full-screen flashcards: tap to flip, swipe right = know it, left = still learning. answer length: full / 1 sentence / keywords |
 
 ## frontend (react + vite)
 

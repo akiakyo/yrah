@@ -31,7 +31,7 @@ export default function Nav() {
       <nav className="nav-links">
         <NavLink to="/" end className="nav-link">home</NavLink>
         <NavLink to="/tools" className="nav-link">tools</NavLink>
-        <NavLink to="/deck" className="nav-link">my deck</NavLink>
+        <NavLink to="/library" className="nav-link">library</NavLink>
       </nav>
       <div className="nav-right">
         <button className="icon-btn sound-btn" data-sfx="none" aria-label={muted ? 'turn sound on' : 'turn sound off'} onClick={toggleMute}>

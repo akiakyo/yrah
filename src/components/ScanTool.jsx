@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CameraIcon, GalleryAddIcon, RefreshIcon, CloseIcon, MagicWandIcon, AddCircleIcon } from '@solar-icons/react/bold'
-import { useDeck, uid } from '../lib/deck.jsx'
+import { useLibrary, uid } from '../lib/library.jsx'
 import { textToCards } from '../lib/parse.js'
 import { renderPage, makePdf, ocr, makeDocx, makeXlsx, download } from '../lib/scan.js'
 import { sfx } from '../lib/sfx.js'
@@ -15,7 +15,8 @@ export default function ScanTool({ tool }) {
   const camera = useRef()
   const gallery = useRef()
   const navigate = useNavigate()
-  const { loadCards, notify } = useDeck()
+  const lib = useLibrary()
+  const { notify } = lib
 
   // free the preview urls when leaving
   const pagesRef = useRef(pages)
@@ -58,8 +59,9 @@ export default function ScanTool({ tool }) {
         const cards = textToCards(texts.join('\n\n'))
         if (!cards.length) { sfx('error'); return notify("couldn't find any cards in that") }
         sfx('success')
-        loadCards(cards, name)
-        navigate('/study', { state: { made: cards.length } })
+        const folderId = lib.prefs.folderId && lib.getFolder(lib.prefs.folderId) ? lib.prefs.folderId : null
+        const id = lib.createDeck({ title: name, cards, folderId })
+        navigate(`/study/${id}`, { state: { made: cards.length } })
         return
       }
 
