@@ -37,7 +37,8 @@ export default defineConfig({
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         // pdf worker is ~1mb, cache it so pdf to flashcards works offline
-        globPatterns: ['**/*.{js,css,html,png,svg,woff2,ttf,otf}'],
+        // aff/dic = spellcheck dictionary for fixing scan typos offline
+        globPatterns: ['**/*.{js,css,html,png,svg,woff2,ttf,otf,aff,dic}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/],

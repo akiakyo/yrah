@@ -4,6 +4,8 @@ import { CameraIcon, GalleryAddIcon, RefreshIcon, CloseIcon, MagicWandIcon, AddC
 import { useLibrary, uid } from '../lib/library.jsx'
 import { textToCards } from '../lib/parse.js'
 import { renderPage, makePdf, ocr, makeDocx, makeXlsx, download } from '../lib/scan.js'
+import { fixPages } from '../lib/ocrfix.js'
+import OcrReview from './OcrReview.jsx'
 import { sfx } from '../lib/sfx.js'
 import { friendlyError } from '../lib/errors.js'
 
@@ -13,6 +15,8 @@ export default function ScanTool({ tool }) {
   const [pages, setPages] = useState([])
   const [enhance, setEnhance] = useState(true)
   const [progress, setProgress] = useState(null)
+  // text reader results waiting for the student to check them
+  const [review, setReview] = useState(null)
   const camera = useRef()
   const gallery = useRef()
   const navigate = useNavigate()
@@ -37,14 +41,15 @@ export default function ScanTool({ tool }) {
     return p.filter((pg) => pg.id !== id)
   })
 
+  const name = `scan-${new Date().toISOString().slice(0, 10)}`
+
   const run = async () => {
-    const name = `scan-${new Date().toISOString().slice(0, 10)}`
     try {
       setProgress({ pct: 0, status: 'preparing pages…' })
-      const canvases = []
-      for (const p of pages) canvases.push(await renderPage(p, enhance))
 
       if (tool.output === 'pdf') {
+        const canvases = []
+        for (const p of pages) canvases.push(await renderPage(p, enhance))
         setProgress({ pct: 0.6, status: 'building pdf…' })
         download(await makePdf(canvases), `${name}.pdf`)
         sfx('success')
@@ -52,25 +57,16 @@ export default function ScanTool({ tool }) {
         return
       }
 
-      const texts = await ocr(canvases, ({ page, total, pct, status }) =>
-        setProgress({ pct: (page - 1 + pct) / total, status: status === 'reading' ? `reading page ${page} of ${total}…` : status }))
-      if (!texts.join('').trim()) { sfx('error'); return notify("couldn't read any text, try a clearer photo") }
-
-      if (tool.output === 'cards') {
-        const cards = textToCards(texts.join('\n\n'))
-        if (!cards.length) { sfx('error'); return notify("couldn't find any cards in that") }
-        sfx('success')
-        const folderId = lib.prefs.folderId && lib.getFolder(lib.prefs.folderId) ? lib.prefs.folderId : null
-        const id = lib.createDeck({ title: name, cards, folderId })
-        navigate(`/study/${id}`, { state: { made: cards.length } })
-        return
-      }
-
-      setProgress({ pct: 1, status: 'saving file…' })
-      if (tool.output === 'docx') download(await makeDocx(texts), `${name}.docx`)
-      else download(await makeXlsx(texts), `${name}.xlsx`)
-      sfx('success')
-      notify('file saved ✦')
+      // the reader always gets the sharp black & white version, whatever the preview shows
+      const canvases = []
+      for (const p of pages) canvases.push(await renderPage(p, 'ocr'))
+      const read = await ocr(canvases, ({ page, total, pct, status }) =>
+        setProgress({ pct: ((page - 1 + pct) / total) * 0.9, status: status === 'reading' ? `reading page ${page} of ${total}…` : status }))
+      if (!read.some((p) => p.text.trim())) { sfx('error'); return notify("couldn't read any text, try a clearer photo") }
+      setProgress({ pct: 0.95, status: 'fixing typos…' })
+      const checked = await fixPages(read)
+      sfx('pop')
+      setReview(checked)
     } catch (err) {
       sfx('error')
       notify(friendlyError(err))
@@ -79,7 +75,36 @@ export default function ScanTool({ tool }) {
     }
   }
 
+  // after the student checked the text
+  const finish = async (texts) => {
+    try {
+      if (tool.output === 'cards') {
+        const cards = textToCards(texts.join('\f'))
+        if (!cards.length) { sfx('error'); return notify("couldn't find any cards in that, try the edit button") }
+        sfx('success')
+        const folderId = lib.prefs.folderId && lib.getFolder(lib.prefs.folderId) ? lib.prefs.folderId : null
+        const id = lib.createDeck({ title: name, cards, folderId })
+        navigate(`/study/${id}`, { state: { made: cards.length } })
+        return
+      }
+      if (tool.output === 'docx') download(await makeDocx(texts), `${name}.docx`)
+      else download(await makeXlsx(texts), `${name}.xlsx`)
+      sfx('success')
+      notify('file saved ✦')
+    } catch (err) {
+      sfx('error')
+      notify(friendlyError(err))
+    }
+  }
+
   const busy = !!progress
+
+  if (review) {
+    return (
+      <OcrReview review={review} onChange={setReview} onDone={finish} onBack={() => setReview(null)}
+        label={labels[tool.output]} Icon={tool.Icon} />
+    )
+  }
 
   return (
     <div className="scan">

@@ -75,19 +75,39 @@ function unspace(line) {
   return line.trim().split(/\s{2,}/).map((w) => w.replace(/\s/g, '')).join(' ')
 }
 
-export function textToCards(text) {
-  const raw = text.replace(/\r/g, '').split('\n').map(unspace).join('\n')
+const hasSeparator = (line) => SEPARATORS.some((s) => line.includes(s))
+
+// one page can mix styles ("term - def" list + "x is y" sentences), so both are kept.
+// headings and paragraphs are only used when a page has neither
+function pageToCards(pageText) {
+  const raw = pageText.split('\n').map(unspace).join('\n')
   const lines = raw.split('\n').map((l) => l.trim()).filter(Boolean)
+  if (!lines.length) return []
   const enough = (n) => n >= Math.max(2, Math.min(lines.length * 0.2, 8))
 
   const sep = bySeparator(lines)
-  if (enough(sep.length)) return sep.slice(0, MAX_CARDS)
-
-  const defs = [...sep, ...byDefinition(lines)]
-  if (defs.length >= 3) return defs.slice(0, MAX_CARDS)
+  const defs = byDefinition(lines.filter((l) => !hasSeparator(l)))
+  const cards = [...(enough(sep.length) || (sep.length && !defs.length) ? sep : []), ...defs]
+  if (cards.length) return cards
 
   const heads = byHeading(lines)
-  if (heads.length >= 2) return heads.slice(0, MAX_CARDS)
+  if (heads.length) return heads
 
-  return byParagraph(raw).slice(0, MAX_CARDS)
+  return byParagraph(raw)
+}
+
+// pages are separated by \f (form feed) by the pdf/scan readers. every page is read
+// on its own, so a page written differently from page 1 no longer gets skipped
+export function textToCards(text) {
+  const seen = new Set()
+  const out = []
+  for (const page of text.replace(/\r/g, '').split('\f')) {
+    for (const c of pageToCards(page)) {
+      const key = `${c.term.toLowerCase()}|${c.def.toLowerCase().slice(0, 40)}`
+      if (!c.term || !c.def || seen.has(key)) continue
+      seen.add(key)
+      out.push(c)
+    }
+  }
+  return out.slice(0, MAX_CARDS)
 }

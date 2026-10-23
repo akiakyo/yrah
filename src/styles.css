@@ -416,6 +416,29 @@ textarea.notes:focus { border-color: var(--yellow-deep); box-shadow: 0 0 0 4px r
 .scan-progress { padding: 1rem; border-radius: 18px; background: var(--yellow-soft); text-align: center; font-weight: 600; font-size: 0.9rem; }
 .scan-progress .progress { margin: 0 0 0.6rem; height: 10px; background: var(--surface); }
 
+/* ---------- scan review ---------- */
+.review { display: flex; flex-direction: column; gap: 0.8rem; }
+.review-head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+.review-head .back-link { margin-bottom: 0; }
+.review-stats { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.stat { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.75rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
+.stat.fixed { background: var(--yellow); }
+.stat.unsure { background: var(--danger-soft); color: var(--danger); }
+.stat.ok { background: #e3f4d7; color: #2f6b1f; }
+.review-tip { text-align: left; padding: 0; line-height: 1.9; }
+.review-warn { display: flex; gap: 0.7rem; align-items: flex-start; padding: 0.9rem 1rem; border-radius: 18px; background: var(--danger-soft); color: #7c2d12; font-size: 0.88rem; line-height: 1.5; }
+.review-warn svg { flex-shrink: 0; margin-top: 2px; color: var(--danger); }
+.review-page { padding: 1rem; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); animation: rise 0.4s var(--spring) both; }
+.review-page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem; }
+.review-page-head .chip { min-height: 34px; padding: 0.3rem 0.8rem; font-size: 0.8rem; }
+.review-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 0.95rem; line-height: 1.75; }
+.ocr-word { display: inline; padding: 0 0.15em; margin: 0 -0.05em; border-radius: 5px; font: inherit; line-height: inherit; cursor: pointer; }
+.ocr-word.fixed { background: var(--yellow); color: var(--ink); }
+.ocr-word.unsure { color: var(--danger); font-weight: 700; text-decoration: underline wavy var(--danger); text-underline-offset: 3px; background: var(--danger-soft); }
+.ocr-word:active { transform: scale(0.94); }
+.review-edit { min-height: 220px; font-size: 0.95rem; }
+.review-go { position: sticky; bottom: calc(var(--tab-h) + var(--safe-bottom) + 12px); z-index: 5; }
+
 /* ---------- steps & cta ---------- */
 .steps { display: grid; gap: 0.75rem; }
 .step { display: grid; grid-template-columns: auto 1fr; column-gap: 1rem; padding: 1.25rem; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
@@ -802,6 +825,7 @@ textarea.notes:focus { border-color: var(--yellow-deep); box-shadow: 0 0 0 4px r
   .deck-tools { max-width: 520px; }
   .folder-grid { grid-template-columns: repeat(3, 1fr); }
   .lib-actions { max-width: 520px; }
+  .review-go { bottom: 20px; }
   .card-row { display: grid; grid-template-columns: 1fr 1fr; column-gap: 0.75rem; }
   .card-row-head { grid-column: 1 / -1; }
 

@@ -69,7 +69,7 @@ export default function ToolPage() {
     try {
       if (tool.kind === 'cards') {
         setStatus(`reading your ${tool.label}…`)
-        const raw = await extractors[tool.source](file)
+        const raw = await extractors[tool.source](file, setStatus)
         setStatus('making flashcards…')
         fromText(raw, file.name.replace(/\.[^.]+$/, ''))
       } else if (tool.local) {
