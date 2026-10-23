@@ -1,9 +1,7 @@
 /* nailong font: drop the file in public/fonts, chewy is the fallback */
 @font-face {
   font-family: 'Nailong';
-  src: url('/fonts/Nailong.woff2') format('woff2'),
-       url('/fonts/Nailong.ttf') format('truetype'),
-       url('/fonts/Nailong.otf') format('opentype');
+  src: url('/fonts/Nailong.ttf') format('truetype');
   font-display: swap;
 }
 

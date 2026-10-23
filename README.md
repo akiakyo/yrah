@@ -46,7 +46,7 @@ vite proxies `/api` to `127.0.0.1:8000` in dev.
 
 ## font & icons
 
-put the nailong font in `public/fonts/` as `Nailong.ttf` (or `.otf` / `.woff2`). until then it falls back to chewy.
+put the nailong font in `public/fonts/` as `Nailong.ttf`. until then it falls back to chewy.
 icons are [solar icons](https://solar-icons.dev/), bold style, via `@solar-icons/react/bold`.
 
 ## seo

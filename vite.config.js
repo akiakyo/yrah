@@ -7,7 +7,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // registered from src/main.jsx (virtual:pwa-register) so the page reloads on updates
+      injectRegister: false,
       includeAssets: ['icons/apple-touch-icon.png', 'fonts/*'],
       manifest: {
         name: 'yrah — study tools',
@@ -30,6 +31,11 @@ export default defineConfig({
         ],
       },
       workbox: {
+        // take over open pages right away. without these a new version waits until every
+        // tab/app window is closed, which on phones means users stay on old code for days
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         // pdf worker is ~1mb, cache it so pdf to flashcards works offline
         globPatterns: ['**/*.{js,css,html,png,svg,woff2,ttf,otf}'],
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
