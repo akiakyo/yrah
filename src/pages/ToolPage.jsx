@@ -8,8 +8,11 @@ import { convertFile, pptxToText } from '../lib/api.js'
 import { useDeck } from '../lib/deck.jsx'
 import { sfx } from '../lib/sfx.js'
 import ScanTool from '../components/ScanTool.jsx'
+import { docxToPdf } from '../lib/wordpdf.js'
+import { download } from '../lib/scan.js'
 
 const extractors = { pdf: pdfToText, docx: docxToText, pptx: pptxToText }
+const localConverters = { 'word-pdf': docxToPdf }
 
 function DropZone({ tool, onFile, status }) {
   const [over, setOver] = useState(false)
@@ -28,7 +31,7 @@ function DropZone({ tool, onFile, status }) {
       onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={drop}>
       {status ? <span className="spinner" /> : <span className="drop-icon"><CloudUploadIcon size={44} /></span>}
       <strong>{status || `choose a ${tool.label} file`}</strong>
-      <span>{status ? 'hang tight, this stays on your phone' : 'tap to browse, or drop it here'}</span>
+      <span>{status ? (tool.endpoint || tool.source === 'pptx' ? 'hang tight, uploading to convert' : 'hang tight, this stays on your phone') : 'tap to browse, or drop it here'}</span>
       <input ref={input} type="file" accept={tool.accept} hidden
         onChange={(e) => { const f = e.target.files[0]; e.target.value = ''; if (f) onFile(f) }} />
     </button>
@@ -64,6 +67,13 @@ export default function ToolPage() {
         const raw = await extractors[tool.source](file)
         setStatus('making flashcards…')
         fromText(raw, file.name.replace(/\.[^.]+$/, ''))
+      } else if (tool.local) {
+        // converted on the device, no server needed
+        setStatus('converting…')
+        const name = file.name.replace(/\.[^.]+$/, '') + '.pdf'
+        download(await localConverters[tool.local](file), name)
+        sfx('success')
+        notify(`downloaded ${name} ✦`)
       } else {
         setStatus('converting…')
         const name = await convertFile(tool.endpoint, file)

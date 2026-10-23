@@ -156,7 +156,7 @@ svg.solar { flex-shrink: 0; }
 .nav-links { display: none; }
 .nav-right { display: flex; align-items: center; gap: 0.5rem; }
 .nav-cta { display: none; }
-.install { background: var(--yellow); border-color: var(--ink); }
+.install-chip { background: var(--yellow); border-color: var(--ink); }
 .nav-link { padding: 0.5rem 1rem; border-radius: 999px; font-weight: 600; font-size: 0.92rem; transition: background 0.2s; }
 .nav-link:hover { background: var(--yellow-soft); }
 .nav-link.active { background: var(--ink); color: var(--yellow); }

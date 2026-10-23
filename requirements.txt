@@ -1,0 +1,8 @@
+# python deps for the vercel function (api/index.py -> server/main.py)
+# docx2pdf and uvicorn are left out: no ms word on vercel, and vercel runs the app itself
+fastapi==0.115.6
+python-multipart==0.0.20
+python-docx==1.1.2
+pdfplumber==0.11.4
+openpyxl==3.1.5
+python-pptx==1.0.2

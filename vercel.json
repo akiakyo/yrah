@@ -1,1 +1,13 @@
-{ "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }] }
+{
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "server/**",
+      "excludeFiles": "{node_modules/**,src/**,public/**,dist/**,.git/**,.vercel/**}",
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

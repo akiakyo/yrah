@@ -56,18 +56,86 @@ def health():
 
 @app.post("/api/convert/pdf-to-word")
 async def pdf_to_word(file: UploadFile = File(...)):
-    from pdf2docx import Converter
+    # pdfplumber + python-docx instead of pdf2docx: pdf2docx pulls ~900mb of
+    # opencv/onnx deps, too big for a vercel function (500mb cap)
+    import pdfplumber
+    from docx import Document
 
     with tempfile.TemporaryDirectory() as tmp:
         src = await save_upload(file, Path(tmp), ".pdf")
-        out = Path(tmp) / "output.docx"
+        doc = Document()
         try:
-            cv = Converter(str(src))
-            cv.convert(str(out))
-            cv.close()
+            with pdfplumber.open(src) as pdf:
+                for i, page in enumerate(pdf.pages):
+                    if i:
+                        doc.add_page_break()
+                    write_page(doc, page)
+        except HTTPException:
+            raise
         except Exception:
             raise HTTPException(422, "couldn't read that pdf")
-        return download(out.read_bytes(), f"{stem(file)}.docx", DOCX)
+
+        buf = io.BytesIO()
+        doc.save(buf)
+        return download(buf.getvalue(), f"{stem(file)}.docx", DOCX)
+
+
+def write_page(doc, page):
+    """adds one pdf page to the docx: text lines become headings/paragraphs, tables stay tables."""
+    tables = page.find_tables()
+    boxes = [t.bbox for t in tables]
+
+    def in_table(obj):
+        return any(b[0] <= obj["x0"] and obj["x1"] <= b[2] and b[1] <= obj["top"] and obj["bottom"] <= b[3] for b in boxes)
+
+    text_page = page.filter(lambda o: o.get("object_type") != "char" or not in_table(o)) if boxes else page
+    lines = text_page.extract_text_lines(return_chars=True)
+
+    sizes = sorted(c["size"] for line in lines for c in line["chars"] if c["text"].strip())
+    body = sizes[len(sizes) // 2] if sizes else 11
+
+    # everything on the page in reading order, top to bottom
+    items = [("line", line["top"], line) for line in lines] + [("table", t.bbox[1], t) for t in tables]
+    items.sort(key=lambda it: it[1])
+
+    para = None
+    last = None
+    for kind, top, obj in items:
+        if kind == "table":
+            rows = [r for r in obj.extract() if any(c for c in r)]
+            if rows:
+                cols = max(len(r) for r in rows)
+                table = doc.add_table(rows=len(rows), cols=cols)
+                table.style = "Table Grid"
+                for r, row in enumerate(rows):
+                    for c, cell in enumerate(row):
+                        table.cell(r, c).text = (cell or "").replace("\n", " ")
+            para, last = None, None
+            continue
+
+        text = obj["text"].strip()
+        chars = [c for c in obj["chars"] if c["text"].strip()]
+        if not text or not chars:
+            continue
+        size = max(c["size"] for c in chars)
+        bold = all("bold" in c["fontname"].lower() for c in chars)
+
+        if size >= body * 1.35:
+            doc.add_heading(text, level=1)
+            para, last = None, None
+        elif size >= body * 1.12:
+            doc.add_heading(text, level=2)
+            para, last = None, None
+        else:
+            # join wrapped lines into one paragraph when the style and spacing match
+            gap = top - last["bottom"] if last else None
+            same = last and abs(last["size"] - size) < 0.5 and last["bold"] == bold
+            if para is not None and same and gap is not None and gap < size * 0.9:
+                para.add_run(" " + text).bold = bold
+            else:
+                para = doc.add_paragraph()
+                para.add_run(text).bold = bold
+            last = {"bottom": obj["bottom"], "size": size, "bold": bold}
 
 
 @app.post("/api/convert/pdf-to-excel")

@@ -38,7 +38,7 @@ export default function Nav() {
           {muted ? <VolumeCrossIcon size={24} /> : <VolumeLoudIcon size={24} />}
         </button>
         {canInstall && (
-          <button className="chip install" onClick={install}><DownloadMinimalisticIcon size={16} /> install</button>
+          <button className="chip install-chip" onClick={install}><DownloadMinimalisticIcon size={16} /> install</button>
         )}
         <Link to="/study" className="btn btn-primary btn-sm nav-cta">study now</Link>
       </div>

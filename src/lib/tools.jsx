@@ -29,7 +29,7 @@ export const tools = [
 
   { id: 'pdf-word', group: 'convert', Icon: FileTextIcon, name: 'pdf to word', desc: 'editable .docx from any pdf.', kind: 'convert', accept: '.pdf,application/pdf', label: 'pdf', endpoint: '/convert/pdf-to-word' },
   { id: 'pdf-excel', group: 'convert', Icon: SheetIcon, name: 'pdf to excel', desc: 'pull tables into a spreadsheet.', kind: 'convert', accept: '.pdf,application/pdf', label: 'pdf', endpoint: '/convert/pdf-to-excel' },
-  { id: 'word-pdf', group: 'convert', Icon: DocumentIcon, name: 'word to pdf', desc: 'clean pdf from your .docx.', kind: 'convert', accept: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document', label: 'docx', endpoint: '/convert/word-to-pdf' },
+  { id: 'word-pdf', group: 'convert', Icon: DocumentIcon, name: 'word to pdf', desc: 'clean pdf from your .docx.', kind: 'convert', accept: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document', label: 'docx', local: 'word-pdf' },
 ]
 
 export const groups = [

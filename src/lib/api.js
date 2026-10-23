@@ -1,7 +1,13 @@
 // talks to the python backend in /server (proxied by vite in dev)
 const BASE = import.meta.env.VITE_API_URL || '/api'
 
+// vercel functions reject request bodies over 4.5mb
+const MAX_UPLOAD = 4.4 * 1024 * 1024
+
 async function post(path, file) {
+  if (file.size > MAX_UPLOAD) {
+    throw new Error(`that file is ${(file.size / 1024 / 1024).toFixed(1)}mb, the limit is 4mb`)
+  }
   const body = new FormData()
   body.append('file', file)
   let res
@@ -12,6 +18,8 @@ async function post(path, file) {
   }
   if (!res.ok) {
     const msg = await res.json().catch(() => null)
+    if (res.status === 413) throw new Error('that file is too big, the limit is 4mb')
+    if (res.status === 504) throw new Error('that took too long, try a smaller file')
     throw new Error(msg?.detail || 'something went wrong')
   }
   return res

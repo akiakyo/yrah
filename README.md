@@ -26,8 +26,12 @@ when hosting, all routes must fall back to `index.html` (`public/_redirects` for
 
 ## backend (python + fastapi)
 
-needed for pdf → word, pdf → excel, word → pdf and powerpoint → flashcards.
-everything else runs on the phone itself.
+used by pdf → word, pdf → excel and powerpoint → flashcards. everything else (scan tools, word → pdf, flashcards) runs on the device.
+
+**on vercel** it deploys automatically with the site: `api/index.py` wraps `server/main.py` as a serverless function, deps come from the root `requirements.txt`, and `/api/*` is routed to it in `vercel.json`.
+limits: uploads up to ~4.5mb, 60s per request, 500mb function size (that's why pdf → word uses pdfplumber + python-docx instead of pdf2docx).
+
+**locally:**
 
 ```bash
 cd server
@@ -37,8 +41,7 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-vite proxies `/api` to `127.0.0.1:8000` in dev. for production set `VITE_API_URL`.
-word → pdf needs microsoft word or libreoffice installed on the server.
+vite proxies `/api` to `127.0.0.1:8000` in dev.
 
 ## font & icons
 
